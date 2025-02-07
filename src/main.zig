@@ -14,9 +14,9 @@ fn put(fd: usize, status: bool) void {
     if (ret != 1) std.debug.print("Error writing: {d}\n", .{ret});
 }
 fn die_if_error(comptime msg: []const u8, r_uz: usize) ?noreturn {
-    const r: isize = @bitCast(r_uz);
+    const r = @as(isize, @bitCast(r_uz));
     if (r >= 0) return null;
-    die("{s}: E{s}\n", .{ msg, @tagName(linux.E.init((~r_uz + 1))) });
+    die("{s}: E{s} ({d})\n", .{ msg, @tagName(linux.E.init(r_uz)), -r });
 }
 pub fn main() void {
     if (builtin.os.tag != .linux) @compileError("This program can only be compiled for linux.");
@@ -35,7 +35,6 @@ pub fn main() void {
     const path: [:0]u8 = std.fmt.allocPrintZ(alloc, "/sys/class/leds/{s}/brightness", .{device}) catch @panic("Error allocating path.");
     const fd = linux.open(path.ptr, .{ .ACCMODE = .WRONLY }, 0);
     _ = die_if_error("open", fd);
-    //) catch |err| die("open: {s}: {s}", .{path, @errorName(err)};
     while (linux.read(0, @ptrCast(&chr), 1) != 0) {
         switch (chr[0]) {
             'y' => put(fd, true),
