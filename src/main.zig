@@ -13,9 +13,10 @@ fn put(fd: usize, status: bool) void {
     const ret = linux.pwrite(@intCast(fd), txt, 1, 0);
     if (ret != 1) std.debug.print("Error writing: {d}\n", .{ret});
 }
-fn die_if_error(comptime msg: []const u8, r: usize) ?noreturn {
+fn die_if_error(comptime msg: []const u8, r_uz: usize) ?noreturn {
+    const r: isize = @bitCast(r_uz);
     if (r >= 0) return null;
-    die("{s}: E{s}\n", .{ msg, @tagName(linux.E.init((~r + 1))) });
+    die("{s}: E{s}\n", .{ msg, @tagName(linux.E.init((~r_uz + 1))) });
 }
 pub fn main() void {
     if (builtin.os.tag != .linux) @compileError("This program can only be compiled for linux.");
